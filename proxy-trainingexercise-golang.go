@@ -12,7 +12,7 @@ import (
 )
 
 /*
-https://pkg.go.dev/net will probably do the most work for me.
+https://pkg.go.dev/net will probably do the most Fetchwork for me.
 user makes requests to url, the proxy forwards them to the url, including headers and
 status codes.
 */
@@ -47,8 +47,10 @@ func handleConnection(c net.Conn) { //now doing a breaking change, so to github 
 		fmt.Println("error while forming request")
 	}
 	for i := 1; i < len(headers)-1; i++ {
-		line := strings.Split(headers[i], ": ")
-		req.Header.Set(line[0], line[1])
+		if !strings.Contains(headers[i], "Sec-Fetch") {
+			line := strings.Split(headers[i], ": ")
+			req.Header.Set(strings.TrimSpace(line[0]), strings.TrimSpace(line[1]))
+		}
 	}
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -59,8 +61,7 @@ func handleConnection(c net.Conn) { //now doing a breaking change, so to github 
 	if err != nil {
 		fmt.Println("error trying to read response body", err)
 	}
-	fmt.Println(resBody)
-
+	fmt.Printf("client: response body: %s\n", resBody)
 }
 
 func listen(port string) {
