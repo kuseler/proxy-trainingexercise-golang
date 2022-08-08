@@ -22,7 +22,7 @@ status codes.
 //TODO: improve Error Handling
 //TODO improve readability
 
-func handleConnection(c net.Conn) { //now doing a breaking change, so to github it goes
+func handleConnection(c net.Conn) {
 	defer fmt.Println("closing")
 	defer c.Close()
 	var headers []string
