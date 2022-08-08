@@ -4,7 +4,9 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"net"
+	"net/http"
 	"strings"
 )
 
@@ -20,32 +22,39 @@ status codes.
 //my time limit is 2 days, but I hope I'll be faster than that
 
 //TODO: improve Error Handling
-
+/*
+	fmt.Println("FEHLER!: ", err)
+	return*/
 //now doing a breaking change, so to github it goes
 
-func handleConnection(c net.Conn) {
+func handleConnection(c net.Conn) { /*
+		fmt.Println("FEHLER!: ", err)
+		return*/
+	defer fmt.Println("closing")
 	defer c.Close()
+	var headers []string
 	bufReader := bufio.NewReader(c)
-
 	for {
 		// Read tokens delimited by newline
-		bytes, err := bufReader.ReadBytes('\n')
+		bytes, err := bufReader.ReadString('\n')
 		if err != nil {
-			//fmt.Println("FEHLER!: ", err)
-			return
+			fmt.Println(err)
+			if err == io.EOF {
+				fmt.Println("EOF reached!")
+				break
+			}
 		}
-
-		//fmt.Printf("%s", bytes)
-		headers := strings.Split(string(bytes), "\n")
-		fmt.Print(bytes[0], " ", headers[0])
-		/*
-			method, url, _ := strings.Fields(headers[0])
-			url = url[1:]
-			req, err := http.NewRequest(method, url)
-			if err != nil {
-				fmt.Println("an error occured:", err)
-				return
-			}*/
+		headers = append(headers, string(bytes))
+	}
+	method := strings.Split(headers[0], " ")[0]
+	url := strings.Split(headers[0], " ")[1]
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		fmt.Println("error while forming request")
+	}
+	for i := 1; i < len(headers)-1; i++ {
+		line := strings.Split(headers[i], ": ")
+		req.Header.Set(line[0], line[1])
 	}
 }
 
