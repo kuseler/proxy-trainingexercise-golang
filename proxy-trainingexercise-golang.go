@@ -5,7 +5,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
-	"net/http"
+	"strings"
 )
 
 /*
@@ -21,17 +21,6 @@ status codes.
 
 //TODO: improve Error Handling
 
-func getHeaders(r http.Request) bool {
-	// Loop over header names
-	for name, values := range r.Header {
-		// Loop over all values for the name.
-		for _, value := range values {
-			fmt.Println(name, value)
-		}
-	}
-	return true
-}
-
 func handleConnection(c net.Conn) {
 	defer c.Close()
 	bufReader := bufio.NewReader(c)
@@ -40,11 +29,15 @@ func handleConnection(c net.Conn) {
 		// Read tokens delimited by newline
 		bytes, err := bufReader.ReadBytes('\n')
 		if err != nil {
-			fmt.Println(err)
+			//fmt.Println("FEHLER!: ", err)
 			return
 		}
 
-		fmt.Printf("%s", bytes)
+		//fmt.Printf("%s", bytes)
+		headers := strings.Split(string(bytes), "\n")
+		for i := 0; i < len(headers); i++ {
+			fmt.Print(headers[i])
+		}
 	}
 }
 
