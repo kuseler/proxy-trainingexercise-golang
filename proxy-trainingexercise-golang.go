@@ -21,6 +21,8 @@ status codes.
 
 //TODO: improve Error Handling
 
+//now doing a breaking change, so to github it goes
+
 func handleConnection(c net.Conn) {
 	defer c.Close()
 	bufReader := bufio.NewReader(c)
@@ -35,9 +37,15 @@ func handleConnection(c net.Conn) {
 
 		//fmt.Printf("%s", bytes)
 		headers := strings.Split(string(bytes), "\n")
-		for i := 0; i < len(headers); i++ {
-			fmt.Print(headers[i])
-		}
+		fmt.Print(bytes[0], " ", headers[0])
+		/*
+			method, url, _ := strings.Fields(headers[0])
+			url = url[1:]
+			req, err := http.NewRequest(method, url)
+			if err != nil {
+				fmt.Println("an error occured:", err)
+				return
+			}*/
 	}
 }
 
