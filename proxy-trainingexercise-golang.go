@@ -5,31 +5,24 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
 )
 
 /*
-https://pkg.go.dev/net will probably do the most work for me,
+https://pkg.go.dev/net will probably do the most work for me.
 user makes requests to url, the proxy forwards them to the url, including headers and
 status codes.
-
 */
 
 //https://www.upguard.com/blog/proxy-server
-
-//my time limit is 2 days, but I hope I'll be faster than that
-
+//I have 1 day left, but I hope I'll be faster than that
 //TODO: improve Error Handling
-/*
-	fmt.Println("FEHLER!: ", err)
-	return*/
-//now doing a breaking change, so to github it goes
+//TODO improve readability
 
-func handleConnection(c net.Conn) { /*
-		fmt.Println("FEHLER!: ", err)
-		return*/
+func handleConnection(c net.Conn) { //now doing a breaking change, so to github it goes
 	defer fmt.Println("closing")
 	defer c.Close()
 	var headers []string
@@ -47,8 +40,9 @@ func handleConnection(c net.Conn) { /*
 		headers = append(headers, string(bytes))
 	}
 	method := strings.Split(headers[0], " ")[0]
-	url := strings.Split(headers[0], " ")[1]
+	url := strings.Split(headers[0], " ")[1][1:]
 	req, err := http.NewRequest(method, url, nil)
+	fmt.Println(headers)
 	if err != nil {
 		fmt.Println("error while forming request")
 	}
@@ -56,6 +50,17 @@ func handleConnection(c net.Conn) { /*
 		line := strings.Split(headers[i], ": ")
 		req.Header.Set(line[0], line[1])
 	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Println("error while making Request", err)
+	}
+
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println("error trying to read response body", err)
+	}
+	fmt.Println(resBody)
+
 }
 
 func listen(port string) {
