@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 /*
@@ -19,9 +20,9 @@ status codes.
 
 func main() {
 	handler := func(w http.ResponseWriter, req *http.Request) {
-		url := req.URL.String()
-		fmt.Printf("url: %s", url)
-		fwReq, _ := http.NewRequest(req.Method, "http://example.org", req.Body)
+		url := strings.Replace(req.URL.String()[1:], "/", "//", 1)
+		fwReq, _ := http.NewRequest(req.Method, url, req.Body)
+		fmt.Println(url, fwReq.Method)
 		fwReq.Header = req.Header.Clone()
 		resp, err := http.DefaultClient.Do(fwReq)
 		if err != nil {
@@ -29,11 +30,9 @@ func main() {
 		}
 		respBody, _ := ioutil.ReadAll(resp.Body)
 		for k, v := range req.Header.Clone() {
-			w.Header().Set(k, v[0])
+			w.Header().Set(k, strings.Join(v, " "))
 		}
 		w.Write(respBody)
-		fmt.Println(resp)
-		fmt.Println(req.Header)
 	}
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":8888", nil)
