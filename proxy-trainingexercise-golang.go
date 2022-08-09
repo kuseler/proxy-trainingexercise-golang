@@ -2,13 +2,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"strings"
 )
 
 /*
@@ -19,79 +15,26 @@ status codes.
 
 //https://www.upguard.com/blog/proxy-server
 //I have 1 day left
-//TODO: improve Error Handling
 //TODO improve readability
-//weird bug where the page has to be reloaded in order for the program to do anything
-
-func getHeaders(connection net.Conn) []string {
-	var headers []string
-	bufReader := bufio.NewReader(connection)
-	for {
-		// Read tokens delimited by newline
-		bytes, err := bufReader.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				fmt.Println("EOF reached!")
-				break
-			}
-			fmt.Println(err)
-		}
-		headers = append(headers, string(bytes))
-	}
-	return headers
-}
-
-func genRequest(headers []string) *http.Request {
-	method := strings.Split(headers[0], " ")[0]
-	url := strings.Split(headers[0], " ")[1][1:]
-	req, err := http.NewRequest(method, url, nil)
-	fmt.Println(headers)
-	if err != nil {
-		fmt.Println("error while forming request")
-	}
-	for i := 1; i < len(headers)-1; i++ {
-		if !strings.Contains(headers[i], "none") {
-			line := strings.Split(headers[i], ": ")
-			req.Header.Set(strings.TrimSpace(line[0]), strings.TrimSpace(line[1]))
-		}
-	}
-	return req
-}
-
-func handleConnection(c net.Conn) {
-	defer fmt.Println("closing")
-	defer c.Close()
-	headers := getHeaders(c)
-	// here is the actual request
-	request := genRequest(headers)
-	res, err := http.DefaultClient.Do(request)
-	if err != nil {
-		fmt.Println("error while making Request", err)
-	}
-
-	resBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println("error trying to read response body", err)
-	}
-	fmt.Println(resBody)
-	fmt.Println(res.Body)
-}
-
-func listen(port string) {
-	ln, err := net.Listen("tcp", port)
-	if err != nil {
-		fmt.Println("an error occured:", err)
-	}
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			fmt.Println("an error occured:", err)
-		}
-		go handleConnection(conn)
-	}
-
-}
 
 func main() {
-	listen(":8888")
+	handler := func(w http.ResponseWriter, req *http.Request) {
+		url := req.URL.String()
+		fmt.Printf("url: %s", url)
+		fwReq, _ := http.NewRequest(req.Method, "http://example.org", req.Body)
+		fwReq.Header = req.Header.Clone()
+		resp, err := http.DefaultClient.Do(fwReq)
+		if err != nil {
+			fmt.Println(err)
+		}
+		respBody, _ := ioutil.ReadAll(resp.Body)
+		for k, v := range req.Header.Clone() {
+			w.Header().Set(k, v[0])
+		}
+		w.Write(respBody)
+		fmt.Println(resp)
+		fmt.Println(req.Header)
+	}
+	http.HandleFunc("/", handler)
+	http.ListenAndServe(":8888", nil)
 }
