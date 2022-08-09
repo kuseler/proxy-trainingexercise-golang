@@ -50,7 +50,7 @@ func genRequest(headers []string) *http.Request {
 		fmt.Println("error while forming request")
 	}
 	for i := 1; i < len(headers)-1; i++ {
-		if !strings.Contains(headers[i], "Sec-Fetch") {
+		if !strings.Contains(headers[i], "none") {
 			line := strings.Split(headers[i], ": ")
 			req.Header.Set(strings.TrimSpace(line[0]), strings.TrimSpace(line[1]))
 		}
@@ -73,7 +73,8 @@ func handleConnection(c net.Conn) {
 	if err != nil {
 		fmt.Println("error trying to read response body", err)
 	}
-	fmt.Println(string(resBody))
+	fmt.Println(resBody)
+	fmt.Println(res.Body)
 }
 
 func listen(port string) {
